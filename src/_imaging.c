@@ -9,8 +9,6 @@ static PyMethodDef functions[] = {
 
 static int
 setup_module(PyObject *m) {
-    liq_version();
-
     return 0;
 }
 
