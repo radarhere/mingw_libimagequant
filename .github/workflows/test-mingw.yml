@@ -1,0 +1,64 @@
+name: Test MinGW
+
+on:
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - ".github/workflows/docs.yml"
+      - ".github/workflows/wheels*"
+      - ".gitmodules"
+      - "docs/**"
+      - "wheels/**"
+  pull_request:
+    paths-ignore:
+      - ".github/workflows/docs.yml"
+      - ".github/workflows/wheels*"
+      - ".gitmodules"
+      - "docs/**"
+      - "wheels/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COVERAGE_CORE: sysmon
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash.exe --login -eo pipefail "{0}"
+    env:
+      MSYSTEM: MINGW64
+      CHERE_INVOKING: 1
+
+    timeout-minutes: 30
+    name: "MinGW"
+
+    steps:
+      - name: Checkout Pillow
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up shell
+        run: echo "C:\msys64\usr\bin\" >> $env:GITHUB_PATH
+        shell: pwsh
+
+      - name: Install dependencies
+        run: |
+          pacman -S --noconfirm \
+              mingw-w64-x86_64-gcc \
+              mingw-w64-x86_64-libimagequant \
+              mingw-w64-x86_64-python-pip
+
+      - name: Build Pillow
+        run: python3 -m pip install .
+
+      - name: Test Pillow
+        run: |
+          python3 -c "from PIL import _imaging"
